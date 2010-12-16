@@ -5,7 +5,17 @@ module Main (main) where
  -}
 
 import System.IO
-import System( getArgs )
+--import System( getArgs )
 import System.Console.GetOpt
 
- main = getLine >>= putStrLn
+import Control.Monad
+
+main = runTee
+
+runTee :: IO ()
+runTee = do
+  is_eof <- isEOF
+  if is_eof 
+    then return ()
+    else do
+      getLine >>= putStrLn >> runTee
