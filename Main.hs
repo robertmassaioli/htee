@@ -17,10 +17,10 @@ main = do
   args <- getArgs
   case getOpt RequireOrder options args of
       (flags, nonOpts,      [])     -> handleFlags flags nonOpts
-      --(_,     nonOpts, [])     -> error $ "unrecognized arguments: " ++ unwords nonOpts
       (_,     _,       msgs)   -> error $ concat msgs ++ usageInfo header options
 
-data Flag = Version | Help 
+data Flag = Version | Help | Append
+          deriving(Eq)
 
 header :: String
 header = "Usage: htee [options] files..."
@@ -28,30 +28,39 @@ header = "Usage: htee [options] files..."
 options :: [OptDescr Flag] 
 options = [ 
   Option ['V','v'] ["version"] (NoArg Version) "print program version number",
-  Option ['H','h'] ["help"] (NoArg Help) "print this help message"
+  Option ['H','h'] ["help"] (NoArg Help) "print this help message",
+  Option ['a'] [] (NoArg Append) "append to the files, do not truncate them"
   ]
 
 handleFlags :: [Flag] -> [String] -> IO ()
-handleFlags _ possibleFilenames = do
-  validFilePaths possibleFilenames >>= (\s -> putStrLn $ "Files are valid: " ++ show s)
-  runTee
+handleFlags flags possibleFilenames = do
+  validFiles <- validFilePaths possibleFilenames 
+  validHandles <- mapM ((flip openFile) (selectFileMode flags)) validFiles
+  runTee validHandles
+  mapM_ hClose validHandles
+  where
+    selectFileMode :: [Flag] -> IOMode
+    selectFileMode flags = if Append `elem` flags
+                              then AppendMode
+                              else WriteMode
 
 -- The actual code that runs the tee operation
-runTee :: IO ()
-runTee = do
+runTee :: [Handle] -> IO ()
+runTee handles = do
   is_eof <- isEOF
   if is_eof 
     then return ()
     else do
-      getLine >>= putStrLn >> runTee
+      getLine >>= putStrLn >> runTee handles
 
-validFilePaths :: [FilePath] -> IO Bool
-validFilePaths [] = return True
+validFilePaths :: [FilePath] -> IO [FilePath]
+validFilePaths [] = return []
 validFilePaths (x:xs) = do
+  result <- validFilePaths xs
   fileValid <- validFilePath x
   if fileValid 
-    then validFilePaths xs
-    else return False
+    then return (x : result)
+    else return result
   where
     validFilePath :: FilePath -> IO Bool
     validFilePath = doesDirectoryExist . dropFileName
