@@ -51,7 +51,10 @@ runTee handles = do
   if is_eof 
     then return ()
     else do
-      getLine >>= putStrLn >> runTee handles
+      line <- getLine 
+      mapM_ ((flip hPutStrLn) line) handles 
+      putStrLn line 
+      runTee handles
 
 validFilePaths :: [FilePath] -> IO [FilePath]
 validFilePaths [] = return []
