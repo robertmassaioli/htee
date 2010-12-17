@@ -7,6 +7,8 @@ module Main (main) where
 import System.IO
 import System.Environment ( getArgs )
 import System.Console.GetOpt
+import System.FilePath
+import System.Directory
 
 import Control.Monad
 
@@ -14,11 +16,11 @@ main :: IO ()
 main = do
   args <- getArgs
   case getOpt RequireOrder options args of
-      (flags, [],      [])     -> handleFlags flags
-      (_,     nonOpts, [])     -> error $ "unrecognized arguments: " ++ unwords nonOpts
+      (flags, nonOpts,      [])     -> handleFlags flags nonOpts
+      --(_,     nonOpts, [])     -> error $ "unrecognized arguments: " ++ unwords nonOpts
       (_,     _,       msgs)   -> error $ concat msgs ++ usageInfo header options
 
-data Flag = Version | Help
+data Flag = Version | Help 
 
 header :: String
 header = "Usage: htee [options] files..."
@@ -29,8 +31,10 @@ options = [
   Option ['H','h'] ["help"] (NoArg Help) "print this help message"
   ]
 
-handleFlags :: [Flag] -> IO ()
-handleFlags _ = runTee
+handleFlags :: [Flag] -> [String] -> IO ()
+handleFlags _ possibleFilenames = do
+  validFilePaths possibleFilenames >>= (\s -> putStrLn $ "Files are valid: " ++ show s)
+  runTee
 
 -- The actual code that runs the tee operation
 runTee :: IO ()
@@ -40,3 +44,14 @@ runTee = do
     then return ()
     else do
       getLine >>= putStrLn >> runTee
+
+validFilePaths :: [FilePath] -> IO Bool
+validFilePaths [] = return True
+validFilePaths (x:xs) = do
+  fileValid <- validFilePath x
+  if fileValid 
+    then validFilePaths xs
+    else return False
+  where
+    validFilePath :: FilePath -> IO Bool
+    validFilePath = doesDirectoryExist . dropFileName
