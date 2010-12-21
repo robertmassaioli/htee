@@ -27,15 +27,15 @@ header = "Usage: htee [options] files..."
 
 options :: [OptDescr Flag] 
 options = [ 
-  Option ['V','v'] ["version"] (NoArg Version) "print program version number",
-  Option ['H','h'] ["help"] (NoArg Help) "print this help message",
-  Option ['a'] [] (NoArg Append) "append to the files, do not truncate them"
+  Option "Vv" ["version"] (NoArg Version) "print program version number",
+  Option "Hh" ["help"] (NoArg Help) "print this help message",
+  Option "a" [] (NoArg Append) "append to the files, do not truncate them"
   ]
 
 handleFlags :: [Flag] -> [String] -> IO ()
 handleFlags flags possibleFilenames = do
   validFiles <- validFilePaths possibleFilenames 
-  validHandles <- mapM ((flip openFile) (selectFileMode flags)) validFiles
+  validHandles <- mapM (`openFile` selectFileMode flags) validFiles
   runTee validHandles
   mapM_ hClose validHandles
   where
@@ -48,11 +48,9 @@ handleFlags flags possibleFilenames = do
 runTee :: [Handle] -> IO ()
 runTee handles = do
   is_eof <- isEOF
-  if is_eof 
-    then return ()
-    else do
+  unless is_eof $ do
       line <- getLine 
-      mapM_ ((flip hPutStrLn) line) handles 
+      mapM_ (`hPutStrLn` line) handles 
       putStrLn line 
       runTee handles
 
