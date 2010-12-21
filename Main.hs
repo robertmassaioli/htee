@@ -15,8 +15,8 @@ import Control.Monad
 main :: IO ()
 main = do
   args <- getArgs
-  case getOpt RequireOrder options args of
-      (flags, nonOpts,      [])     -> handleFlags flags nonOpts
+  case getOpt Permute options args of
+      (flags, nonOpts, [])     -> handleFlags flags nonOpts
       (_,     _,       msgs)   -> error $ concat msgs ++ usageInfo header options
 
 data Flag = Version | Help | Append
