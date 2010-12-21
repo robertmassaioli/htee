@@ -25,6 +25,9 @@ data Flag = Version | Help | Append
 header :: String
 header = "Usage: htee [options] files..."
 
+versionInfo :: String
+versionInfo = "htee-0.1 by Robert Massaioli (2010)"
+
 options :: [OptDescr Flag] 
 options = [ 
   Option "Vv" ["version"] (NoArg Version) "print program version number",
@@ -33,11 +36,14 @@ options = [
   ]
 
 handleFlags :: [Flag] -> [String] -> IO ()
-handleFlags flags possibleFilenames = do
-  validFiles <- validFilePaths possibleFilenames 
-  validHandles <- mapM (`openFile` selectFileMode flags) validFiles
-  runTee validHandles
-  mapM_ hClose validHandles
+handleFlags flags possibleFilenames
+  | Help `elem` flags = putStrLn (usageInfo header options)
+  | Version `elem` flags = putStrLn versionInfo
+  | otherwise = do 
+      validFiles <- validFilePaths possibleFilenames 
+      validHandles <- mapM (`openFile` selectFileMode flags) validFiles
+      runTee validHandles
+      mapM_ hClose validHandles
   where
     selectFileMode :: [Flag] -> IOMode
     selectFileMode flags = if Append `elem` flags
