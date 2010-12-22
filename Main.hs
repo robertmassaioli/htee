@@ -60,17 +60,8 @@ handleFlags flags possibleFilenames
               go
 
     validFilePaths :: [FilePath] -> IO [FilePath]
-    validFilePaths [] = return []
-    validFilePaths (x:xs) = do
-      result <- validFilePaths xs
-      fileValid <- validFilePath x
-      if fileValid 
-        then return (x : result)
-        else return result
+    validFilePaths = filterM (doesDirectoryExist . emptyToCurrent . dropFileName)
       where
-        validFilePath :: FilePath -> IO Bool
-        validFilePath = doesDirectoryExist . emptyToCurrent . dropFileName
-          where
-            emptyToCurrent :: FilePath -> FilePath
-            emptyToCurrent "" = "./"
-            emptyToCurrent x  = x
+        emptyToCurrent :: FilePath -> FilePath
+        emptyToCurrent "" = "./"
+        emptyToCurrent x  = x
