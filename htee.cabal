@@ -51,4 +51,4 @@ Executable htee
   Main-is: Main.hs             
   
   -- Packages needed in order to build this package.
-  Build-depends: base, directory >= 1.1, filepath >= 1.2
+  Build-depends: base, directory >= 1.1 && < 1.2, filepath >= 1.2 && < 1.3
