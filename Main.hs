@@ -48,16 +48,7 @@ handleFlags flags possibleFilenames
     selectFileMode flags = if Append `elem` flags then AppendMode else WriteMode
 
     runTee :: [Handle] -> IO ()
-    runTee handles = go
-      where 
-        go :: IO ()
-        go = do
-          is_eof <- isEOF
-          unless is_eof $ do
-              line <- getLine 
-              mapM_ (`hPutStrLn` line) handles 
-              putStrLn line 
-              go
+    runTee handles = liftM lines getContents >>= mapM_ (forM_ (stdout:handles) . flip hPutStrLn)
 
     validFilePaths :: [FilePath] -> IO [FilePath]
     validFilePaths = filterM (doesDirectoryExist . emptyToCurrent . dropFileName)
