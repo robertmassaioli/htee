@@ -51,8 +51,4 @@ handleFlags flags possibleFilenames
     runTee handles = liftM lines getContents >>= mapM_ (forM_ (stdout:handles) . flip hPutStrLn)
 
     validFilePaths :: [FilePath] -> IO [FilePath]
-    validFilePaths = filterM (doesDirectoryExist . emptyToCurrent . dropFileName)
-      where
-        emptyToCurrent :: FilePath -> FilePath
-        emptyToCurrent "" = "./"
-        emptyToCurrent x  = x
+    validFilePaths = filterM (doesDirectoryExist . dropFileName)
