@@ -19,3 +19,18 @@ Install it just like a normal haskell program. Download the source and then just
 
 And make sure that your cabal bin directory is in your environments PATH variable. That is all that
 there is to it.
+
+Command Line Options
+--------------------
+
+You can get these by simply asking for help:
+
+    $ htee --help
+    Usage: htee [options] output_files...
+      -V, -v  --version  print program version number
+      -H, -h  --help     print this help message
+      -a      --append   append to the files, do not truncate them
+
+And that is everything that you can currently do with htee.
+
+Author: _Robert Massaioli_
