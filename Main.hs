@@ -40,7 +40,7 @@ handleFlags flags possibleFilenames
   | Help `elem` flags = putStrLn (usageInfo header options)
   | Version `elem` flags = putStrLn versionInfo
   | otherwise = do 
-      validHandles <- validFilePaths possibleFilenames >>= mapM (`openFile` selectFileMode flags)
+      validHandles <- mapM (`openFile` selectFileMode flags) =<< validFilePaths possibleFilenames
       runTee validHandles
       mapM_ hClose validHandles
   where
